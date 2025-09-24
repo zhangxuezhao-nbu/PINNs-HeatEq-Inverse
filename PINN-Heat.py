@@ -104,7 +104,8 @@ class Heat():
         x = Variable(x, requires_grad=True) 
 
         d = torch.autograd.grad(self.net(x), x, grad_outputs=torch.ones_like(self.net(x)),
-                                create_graph=True) 
+                                create_graph=True)
+        dt = d[0][:, 0].reshape(-1, 1)
         dx = d[0][:, 1].reshape(-1, 1)
 
         dxx = torch.autograd.grad(dx, x, grad_outputs=torch.ones_like(dx), create_graph=True)[0][:, 1].reshape(-1, 1)
@@ -343,8 +344,12 @@ plt.plot(np.log(errors), '-b', label='Errors')
 plt.title('Training Loss', fontsize=10)
 path = "./pictures/DGM_Eg1_TrainingLoss.png"
 
-plt.savefig(path)
+# 确保所在目录存在（如果不存在则创建）
+os.makedirs(os.path.dirname(path), exist_ok=True)
 
+# 保存图像
+plt.savefig(path)
+plt.close(fig)  # 可选：关闭图形以释放内存
 ############################  plot RelativeError for f  ###########################
 
 errors=torch.load('DGM1_errors_model_f.pkl')
@@ -443,7 +448,8 @@ for _t in t_range:
         data[1] = _x
         indata = torch.Tensor(data.reshape(1, -1))  
         Zdata = net(indata).detach().cpu().numpy()   
-        Z.append(Zdata)  
+        Z.append(Zdata)
+        size = 1
         delt=0
         u_exact_1 = (np.exp(-0.5 * _t)) * (np.sin(_x)) * 2
         u_exact = u_exact_1 * (1 + delt * torch.randn(size, 1))
